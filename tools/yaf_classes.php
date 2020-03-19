@@ -166,8 +166,8 @@ final class Yaf_Loader {
 
 abstract class Yaf_Request_Abstract { 
 	/* constants */
-	const SCHEME_HTTP = http;
-	const SCHEME_HTTPS = https;
+	const SCHEME_HTTP = "http";
+	const SCHEME_HTTPS = "https";
 
 	/* properties */
 	public $module = NULL;

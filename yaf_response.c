@@ -457,7 +457,7 @@ YAF_STARTUP_FUNCTION(response) {
 	{
 		zend_string *name = YAF_RESPONSE_PROPERTY_NAME_DEFAULTBODYNAME;
 		ZVAL_INTERNED_STR(&rv, YAF_RESPONSE_PROPERTY_NAME_DEFAULTBODY);
-		zend_declare_class_constant(yaf_response_ce, Z_STRVAL(key), Z_STRLEN(key), &rv, NULL);
+		zend_declare_class_constant(yaf_response_ce, Z_STRVAL(name), Z_STRLEN(name), &rv, NULL);
 	}
 #else
 	ZVAL_INTERNED_STR(&rv, YAF_RESPONSE_PROPERTY_NAME_DEFAULTBODY);
