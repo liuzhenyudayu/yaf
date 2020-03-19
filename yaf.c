@@ -132,13 +132,13 @@ PHP_MINIT_FUNCTION(yaf)
 	{
 		unsigned int i;
 		for (i = 0; i < sizeof(yaf_known_strings)/sizeof(char*) - 1; i++) {
+#if PHP_VERSION_ID < 70200
 			zend_string *str = zend_string_init(yaf_known_strings[i], strlen(yaf_known_strings[i]), 1);
-#if PHP_VERSION_ID < 70300
 			GC_FLAGS(str) |= IS_STR_INTERNED | IS_STR_PERMANENT;
-#else
-			GC_ADD_FLAGS(str, IS_STR_INTERNED | IS_STR_PERMANENT);
-#endif
 			zend_string_hash_val(str);
+#else
+			zend_string *str = zend_string_init_interned(yaf_known_strings[i], strlen(yaf_known_strings[i]), 1); 
+#endif
 			yaf_known_strings[i] = (char*)str;
 		}
 	}
@@ -173,7 +173,7 @@ PHP_MSHUTDOWN_FUNCTION(yaf)
 	{
 		unsigned int i;
 		for (i = 0; i < sizeof(yaf_known_strings)/sizeof(char*) - 1; i++) {
-			pefree(yaf_known_strings[i], 1);
+			/* pefree(yaf_known_strings[i], 1); */
 		}
 	}
 

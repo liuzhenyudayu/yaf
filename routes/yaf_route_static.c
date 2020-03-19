@@ -146,14 +146,17 @@ int yaf_route_pathinfo_route(yaf_request_t *request, const char *req_uri, size_t
 	if (module != NULL) {
 		ZVAL_STRINGL(&rv, module, module_len);
 		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, &rv);
+		zval_ptr_dtor(&rv);
 	}
 	if (controller != NULL) {
 		ZVAL_STRINGL(&rv, controller, controller_len);
 		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, &rv);
+		zval_ptr_dtor(&rv);
 	}
 	if (action != NULL) {
 		ZVAL_STRINGL(&rv, action, action_len);
 		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, &rv);
+		zval_ptr_dtor(&rv);
 	}
 
 	if (rest) {
