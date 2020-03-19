@@ -72,7 +72,7 @@ static inline void yaf_session_start(yaf_session_t *session) /* {{{ */ {
 /* }}} */
 
 static yaf_session_t *yaf_session_instance(yaf_session_t *this_ptr) /* {{{ */ {
-	zval *sess, member;
+	zval *sess;
 	zend_object *obj;
 	zend_property_info *property_info;
 

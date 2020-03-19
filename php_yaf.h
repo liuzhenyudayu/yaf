@@ -117,6 +117,7 @@ extern zend_module_entry yaf_module_entry;
 	_(YAF_STR__LOCAL_NS,        "_local_ns") \
 	_(YAF_STR__LIBRARY,         "_library") \
 	_(YAF_STR__GLOBAL_LIBRARY,  "_global_library") \
+    _(YAF_STR__ENTRIES,         "_entries") \
 
 
 typedef enum _yaf_known_string_id {
