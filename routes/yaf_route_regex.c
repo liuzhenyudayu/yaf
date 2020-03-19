@@ -45,29 +45,32 @@ ZEND_BEGIN_ARG_INFO_EX(yaf_route_regex_construct_arginfo, 0, 0, 2)
 ZEND_END_ARG_INFO()
 /* }}} */
 
-yaf_route_t * yaf_route_regex_instance(yaf_route_t *this_ptr, zval *route, zval *def, zval *map, zval *verify, zval *reverse) /* {{{ */ {
+yaf_route_t* yaf_route_regex_instance(yaf_route_t *this_ptr, zval *route, zval *def, zval *map, zval *verify, zval *reverse) /* {{{ */ {
+	zval rv;
+
 	if (Z_ISUNDEF_P(this_ptr)) {
 		object_init_ex(this_ptr, yaf_route_regex_ce);
 	}
 
-	zend_update_property(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MATCH), route);
-	zend_update_property(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_ROUTE), def);
+	zend_update_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MATCH, route);
+	zend_update_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_ROUTE, def);
 
 	if (map) {
-		zend_update_property(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MAP), map);
+		zend_update_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MAP, map);
 	}
 
 	if (!verify) {
-		zend_update_property_null(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_VERIFY));
+		ZVAL_NULL(&rv);
+		zend_update_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv);
 	} else {
-		zend_update_property(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_VERIFY), verify);
+		zend_update_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, verify);
 	}
 
-
 	if (!reverse || IS_STRING != Z_TYPE_P(reverse)) {
-		zend_update_property_null(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_REVERSE));
+		ZVAL_NULL(&rv);
+		zend_update_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_REVERSE, &rv);
 	} else {
-		zend_update_property(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_REVERSE), reverse);
+		zend_update_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_REVERSE, reverse);
 	}
 
 	return this_ptr;
@@ -82,7 +85,7 @@ static int yaf_route_regex_match(yaf_route_t *route, const char *uri, size_t len
 		return 0;
 	}
 
-	match = zend_read_property(yaf_route_regex_ce, route, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MATCH), 1, NULL);
+	match = zend_read_property_ex(yaf_route_regex_ce, route, YAF_ROUTE_PROPETY_NAME_MATCH, 1, NULL);
 
 	if ((pce_regexp = pcre_get_compiled_regex_cache(Z_STR_P(match))) == NULL) {
 		return 0;
@@ -91,7 +94,7 @@ static int yaf_route_regex_match(yaf_route_t *route, const char *uri, size_t len
 
 		ZVAL_NULL(&subparts);
 
-		map = zend_read_property(yaf_route_regex_ce, route, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MAP), 1, NULL);
+		map = zend_read_property_ex(yaf_route_regex_ce, route, YAF_ROUTE_PROPETY_NAME_MAP, 1, NULL);
 
 #if PHP_VERSION_ID < 70400
 		php_pcre_match_impl(pce_regexp, (char*)uri, len, &matches, &subparts /* subpats */,
@@ -145,7 +148,7 @@ zend_string * yaf_route_regex_assemble(yaf_route_t *this_ptr, zval *info, zval *
 	zend_string *uri, *inter, *val;
 	smart_str query_str = {0};
 
-	reverse = zend_read_property(yaf_route_regex_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_REVERSE), 1, NULL);
+	reverse = zend_read_property_ex(yaf_route_regex_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_REVERSE, 1, NULL);
 
 	if (Z_TYPE_P(reverse) != IS_STRING) {
 		yaf_trigger_error(YAF_ERR_TYPE_ERROR, "%s", "Reverse property is not a valid string");
@@ -234,9 +237,9 @@ int yaf_route_regex_route(yaf_route_t *router, yaf_request_t *request) {
 	} else {
 		zval *module, *controller, *action, *routes;
 
-		routes = zend_read_property(yaf_route_regex_ce, router, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_ROUTE), 1, NULL);
-		if ((module = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("module"))) != NULL
-				&& IS_STRING == Z_TYPE_P(module)) {
+		routes = zend_read_property_ex(yaf_route_regex_ce, router, YAF_ROUTE_PROPETY_NAME_ROUTE, 1, NULL);
+		if ((module = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("module"))) != NULL &&
+			IS_STRING == Z_TYPE_P(module)) {
 			if (Z_STRVAL_P(module)[0] != ':') {
 				zend_update_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_MODULE), module);
 			} else {
@@ -373,17 +376,20 @@ zend_function_entry yaf_route_regex_methods[] = {
 /** {{{ YAF_STARTUP_FUNCTION
  */
 YAF_STARTUP_FUNCTION(route_regex) {
+	zval rv;
 	zend_class_entry ce;
+
 	YAF_INIT_CLASS_ENTRY(ce, "Yaf_Route_Regex", "Yaf\\Route\\Regex", yaf_route_regex_methods);
 	yaf_route_regex_ce = zend_register_internal_class(&ce);
 	zend_class_implements(yaf_route_regex_ce, 1, yaf_route_ce);
 	yaf_route_regex_ce->ce_flags |= ZEND_ACC_FINAL;
 
-	zend_declare_property_null(yaf_route_regex_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MATCH),  ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_regex_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_ROUTE),  ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_regex_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MAP),    ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_regex_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_VERIFY), ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_regex_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_REVERSE), ZEND_ACC_PROTECTED);
+	ZVAL_NULL(&rv);
+	zend_declare_property_ex(yaf_route_regex_ce, YAF_ROUTE_PROPETY_NAME_MATCH, &rv, ZEND_ACC_PROTECTED, NULL);
+	zend_declare_property_ex(yaf_route_regex_ce, YAF_ROUTE_PROPETY_NAME_ROUTE, &rv, ZEND_ACC_PROTECTED, NULL);
+	zend_declare_property_ex(yaf_route_regex_ce, YAF_ROUTE_PROPETY_NAME_MAP, &rv, ZEND_ACC_PROTECTED, NULL);
+	zend_declare_property_ex(yaf_route_regex_ce, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv, ZEND_ACC_PROTECTED, NULL);
+	zend_declare_property_ex(yaf_route_regex_ce, YAF_ROUTE_PROPETY_NAME_REVERSE, &rv, ZEND_ACC_PROTECTED, NULL);
 
 	return SUCCESS;
 }

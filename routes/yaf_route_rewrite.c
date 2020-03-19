@@ -45,17 +45,20 @@ ZEND_END_ARG_INFO()
 /* }}} */
 
 yaf_route_t * yaf_route_rewrite_instance(yaf_route_t *this_ptr, zval *match, zval *route, zval *verify) /* {{{ */ {
+	zval rv;
+
 	if (Z_ISUNDEF_P(this_ptr)) {
 		object_init_ex(this_ptr, yaf_route_rewrite_ce);
 	}
 
-	zend_update_property(yaf_route_rewrite_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MATCH), match);
-	zend_update_property(yaf_route_rewrite_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_ROUTE), route);
+	zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MATCH, match);
+	zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_ROUTE, route);
 
 	if (!verify) {
-		zend_update_property_null(yaf_route_rewrite_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_VERIFY));
+		ZVAL_NULL(&rv);
+		zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv);
 	} else {
-		zend_update_property(yaf_route_rewrite_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_VERIFY), verify);
+		zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, verify);
 	}
 
 	return this_ptr;
@@ -69,7 +72,7 @@ static int yaf_route_rewrite_match(yaf_route_t *router, const char *uri, size_t 
 	pcre_cache_entry *pce_regexp;
 	smart_str pattern = {0};
 
-	match  = zend_read_property(yaf_route_rewrite_ce, router, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MATCH), 0, NULL);
+	match  = zend_read_property_ex(yaf_route_rewrite_ce, router, YAF_ROUTE_PROPETY_NAME_MATCH, 1, NULL);
 	ZEND_ASSERT(Z_TYPE_P(match) == IS_STRING);
 
 	smart_str_appendc(&pattern, YAF_ROUTE_REGEX_DILIMITER);
@@ -192,8 +195,9 @@ int yaf_route_rewrite_route(yaf_route_t *router, yaf_request_t *request) {
 	if (EXPECTED(yaf_route_rewrite_match(router, req_uri, req_uri_len, &args))) {
 		zval *module, *controller, *action, *routes;
 
-		routes = zend_read_property(yaf_route_rewrite_ce, router, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_ROUTE), 1, NULL);
-		if ((module = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("module"))) != NULL && IS_STRING == Z_TYPE_P(module)) {
+		routes = zend_read_property_ex(yaf_route_rewrite_ce, router, YAF_ROUTE_PROPETY_NAME_ROUTE, 1, NULL);
+		if ((module = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("module"))) != NULL &&
+			IS_STRING == Z_TYPE_P(module)) {
 			if (Z_STRVAL_P(module)[0] != ':') {
 				zend_update_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_MODULE), module);
 			} else {
@@ -204,7 +208,8 @@ int yaf_route_rewrite_route(yaf_route_t *router, yaf_request_t *request) {
 			}
 		}
 
-		if ((controller = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("controller"))) != NULL && IS_STRING == Z_TYPE_P(controller)) {
+		if ((controller = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("controller"))) != NULL &&
+			IS_STRING == Z_TYPE_P(controller)) {
 			if (Z_STRVAL_P(controller)[0] != ':') {
 				zend_update_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_CONTROLLER), controller);
 			} else {
@@ -215,7 +220,8 @@ int yaf_route_rewrite_route(yaf_route_t *router, yaf_request_t *request) {
 			}
 		}
 
-		if ((action = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("action"))) != NULL && IS_STRING == Z_TYPE_P(action)) {
+		if ((action = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("action"))) != NULL &&
+			IS_STRING == Z_TYPE_P(action)) {
 			if (Z_STRVAL_P(action)[0] != ':') {
 				zend_update_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), action);
 			} else {
@@ -270,7 +276,7 @@ zend_string * yaf_route_rewrite_assemble(yaf_route_t *this_ptr, zval *info, zval
 
 	array_init(&pidents);
 
-	match  = zend_read_property(yaf_route_rewrite_ce, this_ptr, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MATCH), 0, NULL);
+	match  = zend_read_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MATCH, 1, NULL);
 	uri = zend_string_copy(Z_STR_P(match));
 	pmatch = estrndup(Z_STRVAL_P(match), Z_STRLEN_P(match));
 	zend_hash_copy(Z_ARRVAL(pidents), Z_ARRVAL_P(info), (copy_ctor_func_t) zval_add_ref);
@@ -434,15 +440,18 @@ zend_function_entry yaf_route_rewrite_methods[] = {
 /** {{{ YAF_STARTUP_FUNCTION
  */
 YAF_STARTUP_FUNCTION(route_rewrite) {
+	zval rv;
 	zend_class_entry ce;
+
 	YAF_INIT_CLASS_ENTRY(ce, "Yaf_Route_Rewrite", "Yaf\\Route\\Rewrite", yaf_route_rewrite_methods);
 	yaf_route_rewrite_ce = zend_register_internal_class_ex(&ce, NULL);
 	zend_class_implements(yaf_route_rewrite_ce, 1, yaf_route_ce);
 	yaf_route_rewrite_ce->ce_flags |= ZEND_ACC_FINAL;
 
-	zend_declare_property_null(yaf_route_rewrite_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_MATCH),  ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_rewrite_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_ROUTE),  ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_rewrite_ce, ZEND_STRL(YAF_ROUTE_PROPETY_NAME_VERIFY), ZEND_ACC_PROTECTED);
+	ZVAL_NULL(&rv);
+	zend_declare_property_ex(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_MATCH, &rv, ZEND_ACC_PROTECTED, NULL);
+	zend_declare_property_ex(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_ROUTE, &rv, ZEND_ACC_PROTECTED, NULL);
+	zend_declare_property_ex(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv, ZEND_ACC_PROTECTED, NULL);
 
 	return SUCCESS;
 }

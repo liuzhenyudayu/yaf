@@ -118,6 +118,12 @@ extern zend_module_entry yaf_module_entry;
 	_(YAF_STR__LIBRARY,         "_library") \
 	_(YAF_STR__GLOBAL_LIBRARY,  "_global_library") \
     _(YAF_STR__ENTRIES,         "_entries") \
+    _(YAF_STR__ROUTE,           "_route") \
+    _(YAF_STR__MAPS,            "_maps") \
+    _(YAF_STR__VERIFY,          "_verify") \
+    _(YAF_STR__REVERSE,         "_reverse") \
+	_(YAF_STR_MODULE,           "module") \
+
 
 
 typedef enum _yaf_known_string_id {
