@@ -112,6 +112,8 @@ extern zend_module_entry yaf_module_entry;
 	_(YAF_STR__DMODULE,         "_default_module") \
 	_(YAF_STR__DCONTROLLER,     "_default_controller") \
 	_(YAF_STR__DACTION,         "_default_action") \
+	_(YAF_STR__STARTED,         "_started") \
+	_(YAF_STR__SESSION,         "_session") \
 
 
 typedef enum _yaf_known_string_id {
