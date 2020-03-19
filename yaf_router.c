@@ -54,7 +54,7 @@ yaf_router_t * yaf_router_instance(yaf_router_t *this_ptr) {
 static_route:
 		object_init_ex(&route, yaf_route_static_ce);
 	} else {
-		(void)yaf_route_instance(&route, YAF_G(default_route));
+		yaf_route_instance(&route, YAF_G(default_route));
 		if (Z_TYPE(route) != IS_OBJECT) {
 			php_error_docref(NULL, E_WARNING,
 					"Unable to initialize default route, use %s instead", ZSTR_VAL(yaf_route_static_ce->name));
@@ -62,8 +62,8 @@ static_route:
 		}
 	}
 
-	zend_hash_str_update(Z_ARRVAL(routes), "_default", sizeof("_default") - 1, &route);
-	zend_update_property(yaf_router_ce, this_ptr, ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_ROUTES), &routes);
+	zend_hash_update(Z_ARRVAL(routes), YAF_STR(YAF_STR__DEFAULT), &route);
+	zend_update_property_ex(yaf_router_ce, this_ptr, YAF_ROUTER_PROPERTY_NAME_ROUTES, &routes);
 	zval_ptr_dtor(&routes);
 
 	return this_ptr;
@@ -79,20 +79,20 @@ int yaf_router_route(yaf_router_t *router, yaf_request_t *request) {
 	zend_string *key;
 	zend_long idx;
 
-	routers = zend_read_property(yaf_router_ce, router, ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_ROUTES), 1, NULL);
+	routers = zend_read_property_ex(yaf_router_ce, router, YAF_ROUTER_PROPERTY_NAME_ROUTES, 1, NULL);
 
 	ht = Z_ARRVAL_P(routers);
 
 	ZEND_HASH_REVERSE_FOREACH_KEY_VAL(ht, idx, key, route) {
 		zend_call_method_with_1_params(route, Z_OBJCE_P(route), NULL, "route", &ret, request);
 		if (IS_TRUE == Z_TYPE(ret)) {
+			zval rv;
 			if (key) {
-				zend_update_property_string(yaf_router_ce,
-						router, ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_CURRENT_ROUTE), ZSTR_VAL(key));
+				ZVAL_STR(&rv, key);
 			} else {
-				zend_update_property_long(yaf_router_ce,
-						router, ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_CURRENT_ROUTE), idx);
+				ZVAL_LONG(&rv, idx);
 			}
+			zend_update_property_ex(yaf_router_ce, router, YAF_ROUTER_PROPERTY_NAME_CURRENT_ROUTE, &rv);
 			yaf_request_set_routed(request, 1);
 			return 1;
 		} else {
@@ -118,7 +118,7 @@ int yaf_router_add_config(yaf_router_t *router, zval *configs) {
 		zend_string *key;
 		zval *routes;
 
-		routes = zend_read_property(yaf_router_ce, router, ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_ROUTES), 1, NULL);
+		routes = zend_read_property_ex(yaf_router_ce, router, YAF_ROUTER_PROPERTY_NAME_ROUTES, 1, NULL);
 
 		ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(configs), idx, key, entry) {
 			if (Z_TYPE_P(entry) != IS_ARRAY) {
@@ -135,7 +135,7 @@ int yaf_router_add_config(yaf_router_t *router, zval *configs) {
 				zend_hash_update(Z_ARRVAL_P(routes), key, route);
 			} else {
 				if (!route) {
-					php_error_docref(NULL, E_WARNING, "Unable to initialize route at index '%llu'", idx);
+					php_error_docref(NULL, E_WARNING, "Unable to initialize route at index '"ZEND_ULONG_FMT"'", idx);
 					continue;
 				}
 				zend_hash_index_update(Z_ARRVAL_P(routes), idx, route);
@@ -229,7 +229,7 @@ PHP_METHOD(yaf_router, addRoute) {
 		RETURN_FALSE;
 	}
 
-	routes = zend_read_property(yaf_router_ce, getThis(), ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_ROUTES), 1, NULL);
+	routes = zend_read_property_ex(yaf_router_ce, getThis(), YAF_ROUTER_PROPERTY_NAME_ROUTES, 1, NULL);
 
 	Z_TRY_ADDREF_P(route);
 	zend_hash_update(Z_ARRVAL_P(routes), name, route);
@@ -283,7 +283,7 @@ PHP_METHOD(yaf_router, getRoute) {
 		RETURN_FALSE;
 	}
 
-	routes = zend_read_property(yaf_router_ce, getThis(), ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_ROUTES), 1, NULL);
+	routes = zend_read_property_ex(yaf_router_ce, getThis(), YAF_ROUTER_PROPERTY_NAME_ROUTES, 1, NULL);
 
 	if ((route = zend_hash_find(Z_ARRVAL_P(routes), name)) != NULL) {
 		RETURN_ZVAL(route, 1, 0);
@@ -296,8 +296,7 @@ PHP_METHOD(yaf_router, getRoute) {
 /** {{{  proto public Yaf_Router::getRoutes(void)
  */
 PHP_METHOD(yaf_router, getRoutes) {
-	zval *routes = zend_read_property(yaf_router_ce,
-			getThis(), ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_ROUTES), 1, NULL);
+	zval *routes = zend_read_property_ex(yaf_router_ce, getThis(), YAF_ROUTER_PROPERTY_NAME_ROUTES, 1, NULL);
 	RETURN_ZVAL(routes, 1, 0);
 }
 /* }}} */
@@ -318,8 +317,7 @@ PHP_METHOD(yaf_router, isModuleName) {
 /** {{{  proto public Yaf_Router::getCurrentRoute(void)
  */
 PHP_METHOD(yaf_router, getCurrentRoute) {
-	zval *route = zend_read_property(yaf_router_ce,
-			getThis(), ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_CURRENT_ROUTE), 1, NULL);
+	zval *route = zend_read_property_ex(yaf_router_ce, getThis(), YAF_ROUTER_PROPERTY_NAME_CURRENT_ROUTE, 1, NULL);
 	RETURN_ZVAL(route, 1, 0);
 }
 /* }}} */
@@ -341,6 +339,7 @@ zend_function_entry yaf_router_methods[] = {
 /** {{{ YAF_STARTUP_FUNCTION
  */
 YAF_STARTUP_FUNCTION(router) {
+	zval rv;
 	zend_class_entry ce;
 	(void)yaf_route_route_arginfo; /* tricky, supress warning "defined but not used" */
 
@@ -349,8 +348,9 @@ YAF_STARTUP_FUNCTION(router) {
 
 	yaf_router_ce->ce_flags |= ZEND_ACC_FINAL;
 
-	zend_declare_property_null(yaf_router_ce, ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_ROUTES), 		 ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_router_ce, ZEND_STRL(YAF_ROUTER_PROPERTY_NAME_CURRENT_ROUTE), ZEND_ACC_PROTECTED);
+	ZVAL_NULL(&rv);
+	zend_declare_property_ex(yaf_router_ce, YAF_ROUTER_PROPERTY_NAME_ROUTES, &rv, ZEND_ACC_PROTECTED, NULL);
+	zend_declare_property_ex(yaf_router_ce, YAF_ROUTER_PROPERTY_NAME_CURRENT_ROUTE, &rv, ZEND_ACC_PROTECTED, NULL);
 
 	YAF_STARTUP(route);
 	YAF_STARTUP(route_static);

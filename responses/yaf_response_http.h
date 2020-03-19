@@ -18,7 +18,7 @@
 #ifndef PHP_YAF_RESPONSE_HTTP_H
 #define PHP_YAF_RESPONSE_HTTP_H
 
-#define YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE   "_response_code"
+#define YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE   YAF_STR(YAF_STR__RESPONSE_CODE)
 
 extern zend_class_entry *yaf_response_http_ce;
 

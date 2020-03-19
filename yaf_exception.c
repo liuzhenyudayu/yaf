@@ -35,22 +35,24 @@ zend_class_entry *yaf_buildin_exceptions[YAF_MAX_BUILDIN_EXCEPTION];
  */
 void yaf_trigger_error(int type, char *format, ...) {
 	va_list args;
-	char *message;
-	unsigned msg_len;
+	zend_string *msg;
 
 	va_start(args, format);
-	msg_len = vspprintf(&message, 0, format, args);
+	msg = vstrpprintf(0, format, args);
 	va_end(args);
 
 	if (YAF_G(throw_exception)) {
-		yaf_throw_exception(type, message);
+		yaf_throw_exception(type, ZSTR_VAL(msg));
 	} else {
-		yaf_application_t *app = zend_read_static_property(yaf_application_ce, ZEND_STRL(YAF_APPLICATION_PROPERTY_NAME_APP), 1);
-		zend_update_property_long(yaf_application_ce, app, ZEND_STRL(YAF_APPLICATION_PROPERTY_NAME_ERRNO), type);
-		zend_update_property_stringl(yaf_application_ce, app, ZEND_STRL(YAF_APPLICATION_PROPERTY_NAME_ERRMSG), message, msg_len);
-		php_error_docref(NULL, E_RECOVERABLE_ERROR, "%s", message);
+		zval rv;
+		yaf_application_t *app = zend_read_static_property_ex(yaf_application_ce, YAF_APPLICATION_PROPERTY_NAME_APP, 1);
+		ZVAL_LONG(&rv, type);
+		zend_update_property_ex(yaf_application_ce, app, YAF_APPLICATION_PROPERTY_NAME_ERRNO, &rv);
+		ZVAL_STR(&rv, msg);
+		zend_update_property_ex(yaf_application_ce, app, YAF_APPLICATION_PROPERTY_NAME_ERRMSG, &rv);
+		php_error_docref(NULL, E_RECOVERABLE_ERROR, "%s", ZSTR_VAL(msg));
 	}
-	efree(message);
+	zend_string_release(msg);
 }
 /* }}} */
 

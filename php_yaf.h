@@ -70,6 +70,102 @@ extern zend_module_entry yaf_module_entry;
 
 #define YAF_ME(c, m, a, f) {m, PHP_MN(c), a, (unsigned) (sizeof(a)/sizeof(struct _zend_arg_info)-1), f},
 
+#define YAF_KNOWN_STRINGS(_) \
+	_(YAF_STR_CONFIG,         "config") \
+	_(YAF_STR_DISPATCHER,     "dispatcher") \
+	_(YAF_STR__RUNNING,       "_running") \
+	_(YAF_STR__APP,           "_app") \
+	_(YAF_STR__ENVIRON,       "_environ") \
+	_(YAF_STR__MODULES,       "_modules") \
+	_(YAF_STR__ERR_NO,        "_err_no") \
+	_(YAF_STR__ERR_MSG,       "_err_msg") \
+	_(YAF_STR__HEADER,        "_header") \
+	_(YAF_STR__BODY,          "_body") \
+	_(YAF_STR__SENDHEADER,    "_sendheader") \
+	_(YAF_STR_CONTENT,        "content") \
+	_(YAF_STR_DEFAULT_BODY,   "DEFAULT_BODY") \
+	_(YAF_STR__RESPONSE_CODE, "_response_code") \
+	_(YAF_STR_APPLICATION,    "application") \
+	_(YAF_STR_YAF,            "yaf") \
+	_(YAF_STR_DIRECTORY,      "directory") \
+	_(YAF_STR_EXT,            "ext") \
+	_(YAF_STR_BOOTSTRAP,      "bootstrap") \
+	_(YAF_STR_LIBRARY,        "library") \
+	_(YAF_STR_NAMESPACE,      "namespace") \
+	_(YAF_STR_VIEW,           "view") \
+	_(YAF_STR_BASEuRI,        "baseUri") \
+	_(YAF_STR_INDEX,          "index") \
+	_(YAF_STR_iNDEX,          "Index") \
+	_(YAF_STR_PHP,            "php") \
+	_(YAF_STR__CURRENT,       "_current") \
+	_(YAF_STR__ROUTES,        "_routes") \
+	_(YAF_STR__DEFAULT,       "_default") \
+
+
+typedef enum _yaf_known_string_id {
+#define _YAF_STR_ID(id, str) id,
+YAF_KNOWN_STRINGS(_YAF_STR_ID)
+#undef _YAF_STR_ID
+	YAF_STR_LAST_KNOWN
+} yaf_known_string_id;
+
+extern char *yaf_known_strings[];
+#define YAF_STR(id)	((zend_string*)yaf_known_strings[id])
+
+#if PHP_VERSION_ID < 70300
+zend_always_inline static zval* php_yaf_read_property(zend_class_entry *scope, zval *object, zend_string *key, zend_bool slient, zval *rv) {
+	zval *property;
+#if PHP_VERSION_ID < 70100
+	zend_class_entry *old_scope = EG(scope);
+	EG(scope) = (scope);
+#else
+	zend_class_entry *old_scope = EG(fake_scope);
+	EG(fake_scope) = (scope);
+#endif
+	if (object) {
+		zval name;
+		ZVAL_INTERNED_STR(&name, key);
+		property = Z_OBJ_HT_P(object)->read_property(object, &name, BP_VAR_IS, NULL, rv);
+	} else {
+		property = zend_std_get_static_property(scope, key, slient);
+	}
+#if PHP_VERSION_ID < 70100
+	EG(scope) = old_scope;
+#else
+	EG(fake_scope) = old_scope;
+#endif
+	return property;
+}
+
+zend_always_inline static void php_yaf_update_property(zend_class_entry *scope, zval *object, zend_string *key, zval *v) {
+#if PHP_VERSION_ID < 70100
+	zend_class_entry *old_scope = EG(scope);
+	EG(scope) = (scope);
+#else
+	zend_class_entry *old_scope = EG(fake_scope);
+	EG(fake_scope) = (scope);
+#endif
+	if (object) {
+		zval name;
+		ZVAL_INTERNED_STR(&name, key);
+		Z_OBJ_HT_P(object)->write_property(object, &name, v, NULL);
+	} else {
+		zend_update_static_property(scope, ZSTR_VAL(key), ZSTR_LEN(key), v);
+	}
+#if PHP_VERSION_ID < 70100
+	EG(scope) = old_scope;
+#else
+	EG(fake_scope) = old_scope;
+#endif
+}
+
+#define zend_read_property_ex php_yaf_read_property
+#define zend_read_static_property_ex(scope, key, slient) php_yaf_read_property(scope, NULL, key, slient, NULL)
+
+#define zend_update_property_ex php_yaf_update_property
+#define zend_update_static_property_ex(scope, key, rv) php_yaf_update_property(scope, NULL, key, rv)
+#endif
+
 extern PHPAPI void php_var_dump(zval **struc, int level);
 extern PHPAPI void php_debug_zval_dump(zval **struc, int level);
 

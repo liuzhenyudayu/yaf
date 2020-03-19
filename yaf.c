@@ -45,6 +45,13 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(yaf);
 
+char *yaf_known_strings[] = {
+#define _YAF_STR_DSC(id, str) str,
+YAF_KNOWN_STRINGS(_YAF_STR_DSC)
+#undef _YAF_STR_DSC
+	NULL
+};
+
 /* {{{ yaf_functions[]
 */
 zend_function_entry yaf_functions[] = {
@@ -122,6 +129,20 @@ PHP_MINIT_FUNCTION(yaf)
 		REGISTER_LONG_CONSTANT("YAF_ERR_TYPE_ERROR",			YAF_ERR_TYPE_ERROR, CONST_PERSISTENT | CONST_CS);
 	}
 
+	{
+		unsigned int i;
+		for (i = 0; i < sizeof(yaf_known_strings)/sizeof(char*) - 1; i++) {
+			zend_string *str = zend_string_init(yaf_known_strings[i], strlen(yaf_known_strings[i]), 1);
+#if PHP_VERSION_ID < 70300
+			GC_FLAGS(str) |= IS_STR_INTERNED | IS_STR_PERMANENT;
+#else
+			GC_ADD_FLAGS(str, IS_STR_INTERNED | IS_STR_PERMANENT);
+#endif
+			zend_string_hash_val(str);
+			yaf_known_strings[i] = (char*)str;
+		}
+	}
+
 	/* startup components */
 	YAF_STARTUP(application);
 	YAF_STARTUP(bootstrap);
@@ -149,6 +170,13 @@ PHP_MSHUTDOWN_FUNCTION(yaf)
 {
 	UNREGISTER_INI_ENTRIES();
 
+	{
+		unsigned int i;
+		for (i = 0; i < sizeof(yaf_known_strings)/sizeof(char*) - 1; i++) {
+			pefree(yaf_known_strings[i], 1);
+		}
+	}
+
 	if (YAF_G(configs)) {
 		zend_hash_destroy(YAF_G(configs));
 		pefree(YAF_G(configs), 1);
@@ -163,14 +191,12 @@ PHP_MSHUTDOWN_FUNCTION(yaf)
 PHP_RINIT_FUNCTION(yaf)
 {
 	YAF_G(throw_exception) = 1;
-	YAF_G(ext) = zend_string_init(YAF_DEFAULT_EXT, sizeof(YAF_DEFAULT_EXT) - 1, 0);
+	YAF_G(ext) = YAF_DEFAULT_EXT;
 	YAF_G(view_ext) = zend_string_init(YAF_DEFAULT_VIEW_EXT, sizeof(YAF_DEFAULT_VIEW_EXT) - 1, 0);
-	YAF_G(default_module) = zend_string_init(
-			YAF_ROUTER_DEFAULT_MODULE, sizeof(YAF_ROUTER_DEFAULT_MODULE) - 1, 0);
-	YAF_G(default_controller) = zend_string_init(
-			YAF_ROUTER_DEFAULT_CONTROLLER, sizeof(YAF_ROUTER_DEFAULT_CONTROLLER) - 1, 0);
-	YAF_G(default_action) = zend_string_init(
-			YAF_ROUTER_DEFAULT_ACTION, sizeof(YAF_ROUTER_DEFAULT_ACTION) - 1, 0);
+	YAF_G(default_module) = YAF_ROUTER_DEFAULT_MODULE;
+	YAF_G(default_controller) = YAF_ROUTER_DEFAULT_CONTROLLER;
+	YAF_G(default_action) = YAF_ROUTER_DEFAULT_ACTION;
+
 	return SUCCESS;
 }
 /* }}} */
