@@ -123,6 +123,16 @@ extern zend_module_entry yaf_module_entry;
     _(YAF_STR__VERIFY,          "_verify") \
     _(YAF_STR__REVERSE,         "_reverse") \
 	_(YAF_STR_MODULE,           "module") \
+	_(YAF_STR_CONTROLLER,       "controller") \
+	_(YAF_STR_ACTION,           "action") \
+	_(YAF_STR_METHOD,           "method") \
+	_(YAF_STR_PARAMS,           "params") \
+	_(YAF_STR_URI,              "uri") \
+	_(YAF_STR_DISPATCHED,       "dispatched") \
+	_(YAF_STR_LANGUAGE,         "language") \
+	_(YAF_STR_ROUTED,           "routed") \
+	_(YAF_STR__BASE_URI,        "_base_uri") \
+	_(YAF_STR__EXCEPTION,       "_exception") \
 
 
 

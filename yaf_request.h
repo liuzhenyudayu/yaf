@@ -17,17 +17,17 @@
 #ifndef YAF_REQUEST_H
 #define YAF_REQUEST_H
 
-#define YAF_REQUEST_PROPERTY_NAME_MODULE     "module"
-#define YAF_REQUEST_PROPERTY_NAME_CONTROLLER "controller"
-#define YAF_REQUEST_PROPERTY_NAME_ACTION     "action"
-#define YAF_REQUEST_PROPERTY_NAME_METHOD     "method"
-#define YAF_REQUEST_PROPERTY_NAME_PARAMS     "params"
-#define YAF_REQUEST_PROPERTY_NAME_URI        "uri"
-#define YAF_REQUEST_PROPERTY_NAME_STATE      "dispatched"
-#define YAF_REQUEST_PROPERTY_NAME_LANG       "language"
-#define YAF_REQUEST_PROPERTY_NAME_ROUTED     "routed"
-#define YAF_REQUEST_PROPERTY_NAME_BASE       "_base_uri"
-#define YAF_REQUEST_PROPERTY_NAME_EXCEPTION  "_exception"
+#define YAF_REQUEST_PROPERTY_NAME_MODULE      YAF_STR(YAF_STR_MODULE)
+#define YAF_REQUEST_PROPERTY_NAME_CONTROLLER  YAF_STR(YAF_STR_CONTROLLER)
+#define YAF_REQUEST_PROPERTY_NAME_ACTION      YAF_STR(YAF_STR_ACTION)
+#define YAF_REQUEST_PROPERTY_NAME_METHOD      YAF_STR(YAF_STR_METHOD)
+#define YAF_REQUEST_PROPERTY_NAME_PARAMS      YAF_STR(YAF_STR_PARAMS)
+#define YAF_REQUEST_PROPERTY_NAME_URI         YAF_STR(YAF_STR_URI)
+#define YAF_REQUEST_PROPERTY_NAME_STATE       YAF_STR(YAF_STR_DISPATCHED)
+#define YAF_REQUEST_PROPERTY_NAME_LANG        YAF_STR(YAF_STR_LANGUAGE)
+#define YAF_REQUEST_PROPERTY_NAME_ROUTED      YAF_STR(YAF_STR_ROUTED)
+#define YAF_REQUEST_PROPERTY_NAME_BASE        YAF_STR(YAF_STR__BASE_URI)
+#define YAF_REQUEST_PROPERTY_NAME_EXCEPTION   YAF_STR(YAF_STR__EXCEPTION)
 
 #define YAF_REQUEST_SERVER_URI               "request_uri="
 
@@ -65,8 +65,8 @@ const char *yaf_request_get_request_method(void);
 
 #define YAF_REQUEST_IS_METHOD(x) \
 PHP_METHOD(yaf_request, is##x) {\
-	zval *method = zend_read_property(Z_OBJCE_P(getThis()), \
-			getThis(), ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_METHOD), 0, NULL); \
+	zval *method = zend_read_property_ex(Z_OBJCE_P(getThis()), \
+					getThis(), YAF_REQUEST_PROPERTY_NAME_METHOD, 1, NULL); \
 	if (zend_string_equals_literal_ci(Z_STR_P(method), #x)) { \
 		RETURN_TRUE; \
 	} \

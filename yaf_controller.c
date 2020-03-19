@@ -207,7 +207,7 @@ int yaf_controller_construct(zend_class_entry *ce, yaf_controller_t *self, yaf_r
 		zend_update_property(ce, self, ZEND_STRL(YAF_CONTROLLER_PROPERTY_NAME_ARGS), args);
 	}
 
-	module = zend_read_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_MODULE), 1, NULL);
+	module = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, 1, NULL);
 
 	zend_update_property(ce, self, ZEND_STRL(YAF_CONTROLLER_PROPERTY_NAME_REQUEST), request);
 	zend_update_property(ce, self, ZEND_STRL(YAF_CONTROLLER_PROPERTY_NAME_RESPONSE), response);
@@ -401,34 +401,32 @@ PHP_METHOD(yaf_controller, forward) {
 				php_error_docref(NULL, E_WARNING, "Expect a string action name");
 				RETURN_FALSE;
 			}
-			zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), module);
+			zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, module);
 			break;
 		case 2:
 			if (Z_TYPE_P(controller) ==  IS_STRING) {
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_CONTROLLER), module);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), controller);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, module);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, controller);
 			} else if (Z_TYPE_P(controller) == IS_ARRAY) {
-				parameters = zend_read_property(request_ce,
-						request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_PARAMS), 1, NULL);
+				parameters = zend_read_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, 1, NULL);
 				zend_hash_copy(Z_ARRVAL_P(parameters), Z_ARRVAL_P(controller), (copy_ctor_func_t) zval_add_ref);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), module);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_PARAMS), parameters);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, module);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, parameters);
 			} else {
 				RETURN_FALSE;
 			}
 			break;
 		case 3:
 			if (Z_TYPE_P(action) == IS_STRING) {
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_MODULE), module);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_CONTROLLER), controller);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), action);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, action);
 			} else if (Z_TYPE_P(action) == IS_ARRAY) {
-				parameters = zend_read_property(request_ce,
-						request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_PARAMS), 1, NULL);
+				parameters = zend_read_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, 1, NULL);
 				zend_hash_copy(Z_ARRVAL_P(parameters), Z_ARRVAL_P(action), (copy_ctor_func_t) zval_add_ref);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_CONTROLLER), module);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), controller);
-				zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_PARAMS), parameters);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, module);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, controller);
+				zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, parameters);
 			} else {
 				RETURN_FALSE;
 			}
@@ -438,12 +436,12 @@ PHP_METHOD(yaf_controller, forward) {
 				php_error_docref(NULL, E_WARNING, "Parameters must be an array");
 				RETURN_FALSE;
 			}
-			parameters = zend_read_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_PARAMS), 1, NULL);
+			parameters = zend_read_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, 1, NULL);
 			zend_hash_copy(Z_ARRVAL_P(parameters), Z_ARRVAL_P(args), (copy_ctor_func_t) zval_add_ref);
-			zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_MODULE), module);
-			zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_CONTROLLER), controller);
-			zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), action);
-			zend_update_property(request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_PARAMS), parameters);
+			zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
+			zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
+			zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, action);
+			zend_update_property_ex(request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, parameters);
 			break;
 	}
 

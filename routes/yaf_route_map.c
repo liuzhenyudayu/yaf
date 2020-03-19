@@ -66,8 +66,8 @@ int yaf_route_map_route(yaf_route_t *route, yaf_request_t *request) {
 	size_t req_uri_len, query_str_len;
 	smart_str route_result = {0};
 
-	uri = zend_read_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_URI), 1, NULL);
-	base_uri = zend_read_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_BASE), 1, NULL);
+	uri = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_URI, 1, NULL);
+	base_uri = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, 1, NULL);
 
 	if (Z_STRLEN_P(base_uri)) {
 		req_uri = yaf_request_strip_base_uri(Z_STR_P(uri), Z_STR_P(base_uri), &req_uri_len);
@@ -116,13 +116,16 @@ int yaf_route_map_route(yaf_route_t *route, yaf_request_t *request) {
 	}
 
 	if (route_result.s) {
+		zval rv;
 		zval *ctl_prefer = zend_read_property(yaf_route_map_ce, route, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER), 1, NULL);
 		ZSTR_LEN(route_result.s)--;
 		ZSTR_VAL(route_result.s)[ZSTR_LEN(route_result.s)] = '\0';
+
+		ZVAL_NEW_STR(&rv, route_result.s);
 		if (Z_TYPE_P(ctl_prefer) == IS_TRUE) {
-			zend_update_property_str(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_CONTROLLER), route_result.s);
+			zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, &rv);
 		} else {
-			zend_update_property_str(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), route_result.s);
+			zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, &rv);
 		}
 		smart_str_free(&route_result);
 	}

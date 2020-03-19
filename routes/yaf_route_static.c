@@ -52,6 +52,7 @@ static inline void yaf_route_strip_uri(const char **req_uri, size_t *req_uri_len
 /* }}} */
 
 int yaf_route_pathinfo_route(yaf_request_t *request, const char *req_uri, size_t req_uri_len) /* {{{ */ {
+	zval rv;
 	const char *module = NULL, *controller = NULL, *action = NULL, *rest = NULL;
 	size_t module_len, controller_len, action_len, rest_len;
 
@@ -143,16 +144,16 @@ int yaf_route_pathinfo_route(yaf_request_t *request, const char *req_uri, size_t
 	}
 
 	if (module != NULL) {
-		zend_update_property_stringl(yaf_request_ce,
-				request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_MODULE), module, module_len);
+		ZVAL_STRINGL(&rv, module, module_len);
+		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, &rv);
 	}
 	if (controller != NULL) {
-		zend_update_property_stringl(yaf_request_ce,
-				request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_CONTROLLER), controller, controller_len);
+		ZVAL_STRINGL(&rv, controller, controller_len);
+		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, &rv);
 	}
 	if (action != NULL) {
-		zend_update_property_stringl(yaf_request_ce,
-				request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_ACTION), action, action_len);
+		ZVAL_STRINGL(&rv, action, action_len);
+		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, &rv);
 	}
 
 	if (rest) {
@@ -171,8 +172,8 @@ int yaf_route_static_route(yaf_route_t *route, yaf_request_t *request) /* {{{ */
 	const char *req_uri;
 	size_t req_uri_len;
 
-	uri = zend_read_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_URI), 1, NULL);
-	base_uri = zend_read_property(yaf_request_ce, request, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_BASE), 1, NULL);
+	uri = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_URI, 1, NULL);
+	base_uri = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, 1, NULL);
 
 	if (Z_STRLEN_P(base_uri)) {
 		req_uri = yaf_request_strip_base_uri(Z_STR_P(uri), Z_STR_P(base_uri), &req_uri_len);

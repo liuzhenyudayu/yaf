@@ -41,7 +41,7 @@ yaf_request_t *yaf_request_http_instance(yaf_request_t *this_ptr, zend_string *r
 	}
 	
 	ZVAL_STRING(&method, yaf_request_get_request_method());
-	zend_update_property(yaf_request_http_ce, this_ptr, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_METHOD), &method);
+	zend_update_property_ex(yaf_request_http_ce, this_ptr, YAF_REQUEST_PROPERTY_NAME_METHOD, &method);
 	zval_ptr_dtor(&method);
 
 	if (request_uri) {
@@ -121,13 +121,16 @@ yaf_request_t *yaf_request_http_instance(yaf_request_t *this_ptr, zend_string *r
 	}
 
 	if (settled_uri) {
-		zend_update_property_str(yaf_request_http_ce, this_ptr, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_URI), settled_uri);
+		zval rv;
+
+		ZVAL_STR(&rv, settled_uri);
+		zend_update_property_ex(yaf_request_http_ce, this_ptr, YAF_REQUEST_PROPERTY_NAME_URI, &rv);
 		yaf_request_set_base_uri(this_ptr, base_uri, settled_uri);
 		zend_string_release(settled_uri);
 	}
 
 	array_init(&params);
-	zend_update_property(yaf_request_http_ce, this_ptr, ZEND_STRL(YAF_REQUEST_PROPERTY_NAME_PARAMS), &params);
+	zend_update_property_ex(yaf_request_http_ce, this_ptr, YAF_REQUEST_PROPERTY_NAME_PARAMS, &params);
 	zval_ptr_dtor(&params);
 
 	return this_ptr;
