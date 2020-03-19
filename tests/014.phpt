@@ -127,12 +127,12 @@ Yaf_Application Object
                 (
                 )
 
-            [_auto_render:protected] => 1
-            [_return_response:protected] => 
-            [_instantly_flush:protected] => 
             [_default_module:protected] => Index
             [_default_controller:protected] => Index
             [_default_action:protected] => index
+            [_auto_render:protected] => 1
+            [_return_response:protected] => 
+            [_instantly_flush:protected] => 
         )
 
     [_modules:protected] => Array
