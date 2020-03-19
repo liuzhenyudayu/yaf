@@ -17,35 +17,23 @@
 #ifndef YAF_LOADER_H
 #define YAF_LOADER_H
 
-#define YAF_DEFAULT_VIEW_EXT     	  		"phtml"
-#define YAF_DEFAULT_LIBRARY_EXT		   		YAF_DEFAULT_CONTROLLER_EXT
+#define YAF_DEFAULT_VIEW_EXT               "phtml"
+#define YAF_DEFAULT_LIBRARY_EXT            YAF_DEFAULT_CONTROLLER_EXT
 
-#define YAF_LIBRARY_DIRECTORY_NAME    		"library"
-#define YAF_CONTROLLER_DIRECTORY_NAME 		"controllers"
-#define YAF_PLUGIN_DIRECTORY_NAME 	  		"plugins"
-#define YAF_MODULE_DIRECTORY_NAME     		"modules"
-#define YAF_VIEW_DIRECTORY_NAME       		"views"
-#define YAF_MODEL_DIRECTORY_NAME      		"models"
+#define YAF_LIBRARY_DIRECTORY_NAME         "library"
+#define YAF_CONTROLLER_DIRECTORY_NAME      "controllers"
+#define YAF_PLUGIN_DIRECTORY_NAME          "plugins"
+#define YAF_MODULE_DIRECTORY_NAME          "modules"
+#define YAF_VIEW_DIRECTORY_NAME            "views"
+#define YAF_MODEL_DIRECTORY_NAME           "models"
 
-#define YAF_SPL_AUTOLOAD_REGISTER_NAME 		"spl_autoload_register"
-#define YAF_AUTOLOAD_FUNC_NAME 				"autoload"
-#define YAF_LOADER_PROPERTY_NAME_INSTANCE	"_instance"
-#define YAF_LOADER_PROPERTY_NAME_NAMESPACE	"_local_ns"
+#define YAF_SPL_AUTOLOAD_REGISTER_NAME     "spl_autoload_register"
+#define YAF_AUTOLOAD_FUNC_NAME             "autoload"
 
-#define	YAF_LOADER_PROPERTY_NAME_LIBRARY	"_library"
-#define YAF_LOADER_PROPERTY_NAME_GLOBAL_LIB "_global_library"
-
-#define YAF_STORE_EG_ENVIRON() \
-	{ \
-		zval ** __old_return_value_pp   = EG(return_value_ptr_ptr); \
-		zend_op ** __old_opline_ptr  	= EG(opline_ptr); \
-		zend_op_array * __old_op_array  = EG(active_op_array);
-
-#define YAF_RESTORE_EG_ENVIRON() \
-		EG(return_value_ptr_ptr) = __old_return_value_pp;\
-		EG(opline_ptr)			 = __old_opline_ptr; \
-		EG(active_op_array)		 = __old_op_array; \
-	}
+#define YAF_LOADER_PROPERTY_NAME_INSTANCE   YAF_STR(YAF_STR__INSTANCE)
+#define YAF_LOADER_PROPERTY_NAME_NAMESPACE  YAF_STR(YAF_STR__LOCAL_NS)
+#define YAF_LOADER_PROPERTY_NAME_LIBRARY    YAF_STR(YAF_STR__LIBRARY)
+#define YAF_LOADER_PROPERTY_NAME_GLOBAL_LIB YAF_STR(YAF_STR__GLOBAL_LIBRARY)
 
 extern zend_class_entry *yaf_loader_ce;
 
