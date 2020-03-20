@@ -46,9 +46,11 @@
 ZEND_DECLARE_MODULE_GLOBALS(yaf);
 
 #if PHP_VERSION_ID < 70300
-const
+const char* const yaf_known_strings[] =
+#else
+char* yaf_known_strings[] =
 #endif
-char *yaf_known_strings[] = {
+{
 #define _YAF_STR_DSC(id, str) str,
 YAF_KNOWN_STRINGS(_YAF_STR_DSC)
 #undef _YAF_STR_DSC

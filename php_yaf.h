@@ -158,7 +158,7 @@ YAF_KNOWN_STRINGS(_YAF_STR_ID)
 } yaf_known_string_id;
 
 #if PHP_VERSION_ID < 70300
-extern const char *yaf_known_strings[];
+extern const char* const yaf_known_strings[];
 #define YAF_STR(id)	((const char*)yaf_known_strings[id])
 
 static zend_always_inline zval* yaf_read_property(zend_class_entry *ce, zval *obj, const char *name) {
