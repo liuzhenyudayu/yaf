@@ -45,11 +45,11 @@ void yaf_trigger_error(int type, char *format, ...) {
 		yaf_throw_exception(type, ZSTR_VAL(msg));
 	} else {
 		zval rv;
-		yaf_application_t *app = zend_read_static_property_ex(yaf_application_ce, YAF_APPLICATION_PROPERTY_NAME_APP, 1);
+		yaf_application_t *app = yaf_read_static_property(yaf_application_ce, YAF_APPLICATION_PROPERTY_NAME_APP);
 		ZVAL_LONG(&rv, type);
-		zend_update_property_ex(yaf_application_ce, app, YAF_APPLICATION_PROPERTY_NAME_ERRNO, &rv);
+		yaf_write_property(yaf_application_ce, app, YAF_APPLICATION_PROPERTY_NAME_ERRNO, &rv);
 		ZVAL_STR(&rv, msg);
-		zend_update_property_ex(yaf_application_ce, app, YAF_APPLICATION_PROPERTY_NAME_ERRMSG, &rv);
+		yaf_write_property(yaf_application_ce, app, YAF_APPLICATION_PROPERTY_NAME_ERRMSG, &rv);
 		php_error_docref(NULL, E_RECOVERABLE_ERROR, "%s", ZSTR_VAL(msg));
 	}
 	zend_string_release(msg);

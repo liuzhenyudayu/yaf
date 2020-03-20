@@ -60,7 +60,7 @@ ZEND_END_ARG_INFO()
 zval * yaf_response_get_header(yaf_response_t *response, zend_string *name) {
 	zval *pzval;
 
-	zval *zheaders = zend_read_property_ex(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER, 1, NULL);
+	zval *zheaders = yaf_read_property(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER);
 
 	if (IS_ARRAY != Z_TYPE_P(zheaders)) {
 		return NULL;
@@ -81,7 +81,7 @@ zval * yaf_response_get_header(yaf_response_t *response, zend_string *name) {
 /** {{{ int yaf_response_clear_header(yaf_response_t *response, zend_string *name)
 */
 int yaf_response_clear_header(yaf_response_t *response, zend_string *name) {
-	zval *zheader = zend_read_property_ex(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER, 1, NULL);
+	zval *zheader = yaf_read_property(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER);
 
 	if (name) {
 		zend_hash_del(Z_ARRVAL_P(zheader), name);
@@ -102,7 +102,7 @@ int yaf_response_alter_header(yaf_response_t *response, zend_string *name, char 
 		return 1;
 	}
 
-	z_headers = zend_read_property_ex(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER, 1, NULL);
+	z_headers = yaf_read_property(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER);
 
 	if ((pzval = zend_hash_find(Z_ARRVAL_P(z_headers), name)) == NULL) {
 		add_assoc_stringl_ex(z_headers, ZSTR_VAL(name), ZSTR_LEN(name), value, value_len);
@@ -157,13 +157,13 @@ int yaf_response_http_send(yaf_response_t *response) {
 	zend_string *header_name;
 	sapi_header_line ctr = {0};
 
-	zresponse_code = zend_read_property_ex(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE, 1, NULL);
+	zresponse_code = yaf_read_property(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE);
 
 	if (Z_LVAL_P(zresponse_code)) {
 		SG(sapi_headers).http_response_code = Z_LVAL_P(zresponse_code);
 	}
 
-	zheader = zend_read_property_ex(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER, 1, NULL);
+	zheader = yaf_read_property(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_HEADER);
 
     ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(zheader), num_key, header_name, entry) {
         if (header_name) {
@@ -180,7 +180,7 @@ int yaf_response_http_send(yaf_response_t *response) {
 	} ZEND_HASH_FOREACH_END();
 	efree(ctr.line);
 
-	zbody = zend_read_property_ex(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_BODY, 1, NULL);
+	zbody = yaf_read_property(yaf_response_ce, response, YAF_RESPONSE_PROPERTY_NAME_BODY);
 
 	ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(zbody), val) {
 		zend_string *str = zval_get_string(val);
@@ -210,7 +210,7 @@ PHP_METHOD(yaf_response_http, setHeader) {
 	if (response_code) {
 		zval rv;
 		ZVAL_LONG(&rv, response_code);
-		zend_update_property_ex(yaf_response_ce, self, YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE, &rv);
+		yaf_write_property(yaf_response_ce, self, YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE, &rv);
 	}
 
 	if (yaf_response_alter_header(self, name, ZSTR_VAL(value), ZSTR_LEN(value), rep ? 1 : 0)) {
@@ -325,9 +325,9 @@ YAF_STARTUP_FUNCTION(response_http) {
 	yaf_response_http_ce = zend_register_internal_class_ex(&ce, yaf_response_ce);
 
 	ZVAL_TRUE(&rv);
-	zend_declare_property_ex(yaf_response_http_ce, YAF_RESPONSE_PROPERTY_NAME_HEADEREXCEPTION, &rv, ZEND_ACC_PROTECTED, NULL);
+	yaf_declare_property(yaf_response_http_ce, YAF_RESPONSE_PROPERTY_NAME_HEADEREXCEPTION, &rv, ZEND_ACC_PROTECTED);
 	ZVAL_LONG(&rv, 0);
-	zend_declare_property_ex(yaf_response_http_ce, YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE, &rv, ZEND_ACC_PROTECTED, NULL);
+	yaf_declare_property(yaf_response_http_ce, YAF_RESPONSE_PROPERTY_NAME_RESPONSECODE, &rv, ZEND_ACC_PROTECTED);
 
 	return SUCCESS;
 }

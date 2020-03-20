@@ -48,12 +48,9 @@ int yaf_route_simple_route(yaf_route_t *route, yaf_request_t *request) {
 	zval *module, *controller, *action;
 	zval *nmodule, *ncontroller, *naction;
 
-	nmodule	= zend_read_property(yaf_route_simple_ce,
-			route, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_MODULE), 1, NULL);
-	ncontroller = zend_read_property(yaf_route_simple_ce,
-			route, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER), 1, NULL);
-	naction = zend_read_property(yaf_route_simple_ce,
-			route, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_ACTION), 1, NULL);
+	nmodule	= yaf_read_property(yaf_route_simple_ce, route, YAF_ROUTE_SIMPLE_VAR_NAME_MODULE);
+	ncontroller = yaf_read_property(yaf_route_simple_ce, route, YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER);
+	naction = yaf_read_property(yaf_route_simple_ce, route, YAF_ROUTE_SIMPLE_VAR_NAME_ACTION);
 
 	/* if there is no expect parameter in supervars, then null will be return */
 	module 	= yaf_request_query(YAF_GLOBAL_VARS_GET, Z_STR_P(nmodule));
@@ -65,15 +62,15 @@ int yaf_route_simple_route(yaf_route_t *route, yaf_request_t *request) {
 	}
 
 	if (module && Z_TYPE_P(module) == IS_STRING && yaf_application_is_module_name(Z_STR_P(module))) {
-		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
+		yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
 	}
 
 	if (controller) {
-		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
+		yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
 	}
 
 	if (action) {
-		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, action);
+		yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, action);
 	}
 
 	return 1;
@@ -87,9 +84,9 @@ yaf_route_t * yaf_route_simple_instance(yaf_route_t *this_ptr, zval *module, zva
 		object_init_ex(this_ptr, yaf_route_simple_ce);
 	}
 
-	zend_update_property(yaf_route_simple_ce, this_ptr, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_MODULE), module);
-	zend_update_property(yaf_route_simple_ce, this_ptr, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER), controller);
-	zend_update_property(yaf_route_simple_ce, this_ptr, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_ACTION), action);
+	yaf_write_property(yaf_route_simple_ce, this_ptr, YAF_ROUTE_SIMPLE_VAR_NAME_MODULE, module);
+	yaf_write_property(yaf_route_simple_ce, this_ptr, YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER, controller);
+	yaf_write_property(yaf_route_simple_ce, this_ptr, YAF_ROUTE_SIMPLE_VAR_NAME_ACTION, action);
 
 	return this_ptr;
 }
@@ -117,12 +114,9 @@ zend_string * yaf_route_simple_assemble(yaf_route_t *this_ptr, zval *info, zval 
 
 	smart_str_appendc(&uri, '?');
 
-	nmodule = zend_read_property(yaf_route_simple_ce,
-			this_ptr, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_MODULE), 1, NULL);
-	ncontroller = zend_read_property(yaf_route_simple_ce,
-			this_ptr, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER), 1, NULL);
-	naction = zend_read_property(yaf_route_simple_ce,
-			this_ptr, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_ACTION), 1, NULL);
+	nmodule = yaf_read_property(yaf_route_simple_ce, this_ptr, YAF_ROUTE_SIMPLE_VAR_NAME_MODULE);
+	ncontroller = yaf_read_property(yaf_route_simple_ce, this_ptr, YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER);
+	naction = yaf_read_property(yaf_route_simple_ce, this_ptr, YAF_ROUTE_SIMPLE_VAR_NAME_ACTION);
 
 	do {
 		zval *zv;
@@ -238,6 +232,7 @@ zend_function_entry yaf_route_simple_methods[] = {
 /** {{{ YAF_STARTUP_FUNCTION
  */
 YAF_STARTUP_FUNCTION(route_simple) {
+	zval rv;
 	zend_class_entry ce;
 
 	YAF_INIT_CLASS_ENTRY(ce, "Yaf_Route_Simple", "Yaf\\Route\\Simple", yaf_route_simple_methods);
@@ -246,9 +241,10 @@ YAF_STARTUP_FUNCTION(route_simple) {
 
 	yaf_route_simple_ce->ce_flags |= ZEND_ACC_FINAL;
 
-	zend_declare_property_null(yaf_route_simple_ce, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER), ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_simple_ce, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_MODULE), ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_simple_ce, ZEND_STRL(YAF_ROUTE_SIMPLE_VAR_NAME_ACTION), ZEND_ACC_PROTECTED);
+	ZVAL_NULL(&rv);
+	yaf_declare_property(yaf_route_simple_ce, YAF_ROUTE_SIMPLE_VAR_NAME_CONTROLLER, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_route_simple_ce, YAF_ROUTE_SIMPLE_VAR_NAME_MODULE, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_route_simple_ce, YAF_ROUTE_SIMPLE_VAR_NAME_ACTION, &rv, ZEND_ACC_PROTECTED);
 
 	return SUCCESS;
 }

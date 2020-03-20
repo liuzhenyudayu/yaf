@@ -169,7 +169,7 @@ int yaf_request_set_base_uri(yaf_request_t *request, zend_string *base_uri, zend
 					basename = sanitized_uri;
 				}
 				ZVAL_STR(&rv, basename);
-				zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
+				yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
 				return 1;
 			} else {
 				zend_string *dir = zend_string_init(ZSTR_VAL(basename), ZSTR_LEN(basename), 0); /* php_dirname might alter the string */
@@ -183,7 +183,7 @@ int yaf_request_set_base_uri(yaf_request_t *request, zend_string *base_uri, zend
 				if (ZSTR_LEN(dir)) {
 					if (memcmp(ZSTR_VAL(request_uri), ZSTR_VAL(dir), ZSTR_LEN(dir)) == 0) {
 						ZVAL_STR(&rv, dir);
-						zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
+						yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
 						zend_string_release(dir);
 						return 1;
 					}
@@ -192,7 +192,7 @@ int yaf_request_set_base_uri(yaf_request_t *request, zend_string *base_uri, zend
 			}
 		}
 		ZVAL_EMPTY_STRING(&rv);
-		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
+		yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
 	} else {
 		zend_string *sanitized_uri = NULL;
 		if (UNEXPECTED(ZSTR_VAL(base_uri)[ZSTR_LEN(base_uri) - 1] == '/')) {
@@ -200,7 +200,7 @@ int yaf_request_set_base_uri(yaf_request_t *request, zend_string *base_uri, zend
 			base_uri = sanitized_uri;
 		}
 		ZVAL_STR(&rv, base_uri);
-		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
+		yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, &rv);
 		if (UNEXPECTED(sanitized_uri)) {
 			zend_string_release(sanitized_uri);
 		}
@@ -269,12 +269,12 @@ zval *yaf_request_query(unsigned type, zend_string *name) /* {{{ */ {
 /* }}} */
 
 yaf_request_t * yaf_request_get_method(yaf_request_t *request) /* {{{ */ {
-	return zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_METHOD, 1, NULL);
+	return yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_METHOD);
 }
 /* }}} */
 
 zval *yaf_request_get_language(yaf_request_t *instance, zval *accept_language) /* {{{ */ {
-	zval *lang = zend_read_property_ex(yaf_request_ce, instance, YAF_REQUEST_PROPERTY_NAME_LANG, 1, NULL);
+	zval *lang = yaf_read_property(yaf_request_ce, instance, YAF_REQUEST_PROPERTY_NAME_LANG);
 
 	if (UNEXPECTED(IS_STRING != Z_TYPE_P(lang))) {
 		zval *accept_langs = yaf_request_query_str(YAF_GLOBAL_VARS_SERVER,
@@ -320,7 +320,7 @@ zval *yaf_request_get_language(yaf_request_t *instance, zval *accept_language) /
 
 			if (prefer) {
 				ZVAL_STRINGL(accept_language, prefer, prefer_len);
-				zend_update_property_ex(yaf_request_ce, instance, YAF_REQUEST_PROPERTY_NAME_LANG, accept_language);
+				yaf_write_property(yaf_request_ce, instance, YAF_REQUEST_PROPERTY_NAME_LANG, accept_language);
 				efree(prefer);
 				efree(langs);
 				zval_ptr_dtor(accept_language);
@@ -335,13 +335,13 @@ zval *yaf_request_get_language(yaf_request_t *instance, zval *accept_language) /
 /* }}} */
 
 int yaf_request_is_routed(yaf_request_t *request) /* {{{ */{
-	zval *routed = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ROUTED, 1, NULL);
+	zval *routed = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ROUTED);
 	return Z_TYPE_P(routed) == IS_TRUE ? 1 : 0;
 }
 /* }}} */
 
 int yaf_request_is_dispatched(yaf_request_t *request) /* {{{ */ {
-	zval *dispatched = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_STATE, 1, NULL);
+	zval *dispatched = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_STATE);
 	return Z_TYPE_P(dispatched) == IS_TRUE ? 1 : 0;
 }
 /* }}} */
@@ -350,23 +350,23 @@ void yaf_request_set_dispatched(yaf_request_t *instance, int flag) /* {{{ */ {
 	zval rv;
 
 	ZVAL_BOOL(&rv, flag);
-	zend_update_property_ex(yaf_request_ce, instance, YAF_REQUEST_PROPERTY_NAME_STATE, &rv);
+	yaf_write_property(yaf_request_ce, instance, YAF_REQUEST_PROPERTY_NAME_STATE, &rv);
 }
 /* }}} */
 
 void yaf_request_set_routed(yaf_request_t *request, int flag) /* {{{ */ {
 	zval rv;
-	zval *route = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ROUTED, 1, NULL);
+	zval *route = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ROUTED);
 
 	if ((flag && Z_TYPE_P(route) == IS_FALSE) || (!flag && Z_TYPE_P(route) == IS_TRUE)) {
 		ZVAL_BOOL(&rv, flag);
-		zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ROUTED, &rv);
+		yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ROUTED, &rv);
 	}
 }
 /* }}} */
 
 int yaf_request_set_params_single(yaf_request_t *request, zend_string *key, zval *value) /* {{{ */ {
-	zval *params = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, 1, NULL);
+	zval *params = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS);
 	if ((zend_hash_update(Z_ARRVAL_P(params), key, value)) != NULL) {
 		Z_TRY_ADDREF_P(value);
 		return 1;
@@ -376,7 +376,7 @@ int yaf_request_set_params_single(yaf_request_t *request, zend_string *key, zval
 /* }}} */
 
 int yaf_request_set_params_multi(yaf_request_t *request, zval *values) /* {{{ */ {
-	zval *params = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, 1, NULL);
+	zval *params = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS);
 	if (values && Z_TYPE_P(values) == IS_ARRAY) {
 		zend_hash_copy(Z_ARRVAL_P(params), Z_ARRVAL_P(values), (copy_ctor_func_t) zval_add_ref);
 		return 1;
@@ -386,7 +386,7 @@ int yaf_request_set_params_multi(yaf_request_t *request, zval *values) /* {{{ */
 /* }}} */
 
 zval * yaf_request_get_param(yaf_request_t *request, zend_string *key) /* {{{ */ {
-	zval *params = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS, 1, NULL);
+	zval *params = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_PARAMS);
 	return zend_hash_find(Z_ARRVAL_P(params), key);
 }
 /* }}} */
@@ -462,7 +462,7 @@ YAF_REQUEST_METHOD(yaf_request, Server, YAF_GLOBAL_VARS_SERVER);
 /** {{{ proto public Yaf_Request_Abstract::getModuleName(void)
 */
 PHP_METHOD(yaf_request, getModuleName) {
-	zval *module = zend_read_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_MODULE, 1, NULL);
+	zval *module = yaf_read_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_MODULE);
 	RETVAL_ZVAL(module, 1, 0);
 }
 /* }}} */
@@ -470,7 +470,7 @@ PHP_METHOD(yaf_request, getModuleName) {
 /** {{{ proto public Yaf_Request_Abstract::getControllerName(void)
 */
 PHP_METHOD(yaf_request, getControllerName) {
-	zval *controller = zend_read_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_CONTROLLER, 1, NULL);
+	zval *controller = yaf_read_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_CONTROLLER);
 	RETVAL_ZVAL(controller, 1, 0);
 }
 /* }}} */
@@ -478,7 +478,7 @@ PHP_METHOD(yaf_request, getControllerName) {
 /** {{{ proto public Yaf_Request_Abstract::getActionName(void)
 */
 PHP_METHOD(yaf_request, getActionName) {
-	zval *action = zend_read_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_ACTION, 1, NULL);
+	zval *action = yaf_read_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_ACTION);
 	RETVAL_ZVAL(action, 1, 0);
 }
 /* }}} */
@@ -498,7 +498,7 @@ PHP_METHOD(yaf_request, setModuleName) {
 		RETURN_FALSE;
 	}
 
-	zend_update_property_ex(yaf_request_ce, self, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
+	yaf_write_property(yaf_request_ce, self, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
 
 	RETURN_ZVAL(self, 1, 0);
 }
@@ -519,7 +519,7 @@ PHP_METHOD(yaf_request, setControllerName) {
 		RETURN_FALSE;
 	}
 
-	zend_update_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
+	yaf_write_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
 
 	RETURN_ZVAL(self, 1, 0);
 }
@@ -540,7 +540,7 @@ PHP_METHOD(yaf_request, setActionName) {
 		RETURN_FALSE;
 	}
 
-	zend_update_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_ACTION, action);
+	yaf_write_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_ACTION, action);
 
 	RETURN_ZVAL(self, 1, 0);
 }
@@ -605,7 +605,7 @@ PHP_METHOD(yaf_request, getParam) {
 /** {{{ proto public Yaf_Request_Abstract::getException(void)
 */
 PHP_METHOD(yaf_request, getException) {
-	zval *exception = zend_read_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_EXCEPTION, 1, NULL);
+	zval *exception = yaf_read_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_EXCEPTION);
 	if (IS_OBJECT == Z_TYPE_P(exception)
 			&& instanceof_function(Z_OBJCE_P(exception), zend_exception_get_default())) {
 		RETURN_ZVAL(exception, 1, 0);
@@ -618,7 +618,7 @@ PHP_METHOD(yaf_request, getException) {
 /** {{{ proto public Yaf_Request_Abstract::getParams(void)
 */
 PHP_METHOD(yaf_request, getParams) {
-	zval *params = zend_read_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_PARAMS, 1, NULL);
+	zval *params = yaf_read_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_PARAMS);
 	RETURN_ZVAL(params, 1, 0);
 }
 /* }}} */
@@ -690,7 +690,7 @@ PHP_METHOD(yaf_request, setBaseUri) {
 /** {{{ proto public Yaf_Request_Abstract::getBaseUri(string $name)
 */
 PHP_METHOD(yaf_request, getBaseUri) {
-	zval *uri = zend_read_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_BASE, 1, NULL);
+	zval *uri = yaf_read_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_BASE);
 	RETURN_ZVAL(uri, 1, 0);
 }
 /* }}} */
@@ -698,7 +698,7 @@ PHP_METHOD(yaf_request, getBaseUri) {
 /** {{{ proto public Yaf_Request_Abstract::getRequestUri(string $name)
 */
 PHP_METHOD(yaf_request, getRequestUri) {
-	zval *uri = zend_read_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_URI, 1, NULL);
+	zval *uri = yaf_read_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_URI);
 	RETURN_ZVAL(uri, 1, 0);
 }
 /* }}} */
@@ -714,7 +714,7 @@ PHP_METHOD(yaf_request, setRequestUri) {
 	}
 
 	ZVAL_STR(&rv, uri);
-	zend_update_property_ex(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_URI, &rv);
+	yaf_write_property(yaf_request_ce, getThis(), YAF_REQUEST_PROPERTY_NAME_URI, &rv);
 	RETURN_ZVAL(getThis(), 1, 0);
 }
 /* }}} */
@@ -789,21 +789,21 @@ YAF_STARTUP_FUNCTION(request) {
 	yaf_request_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;
 
 	ZVAL_NULL(&rv);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_MODULE, &rv, ZEND_ACC_PUBLIC, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, &rv, ZEND_ACC_PUBLIC, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_ACTION, &rv, ZEND_ACC_PUBLIC, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_METHOD, &rv, ZEND_ACC_PUBLIC, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_PARAMS, &rv, ZEND_ACC_PROTECTED, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_LANG, &rv, ZEND_ACC_PROTECTED, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_EXCEPTION, &rv, ZEND_ACC_PROTECTED, NULL);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_MODULE, &rv, ZEND_ACC_PUBLIC);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, &rv, ZEND_ACC_PUBLIC);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_ACTION, &rv, ZEND_ACC_PUBLIC);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_METHOD, &rv, ZEND_ACC_PUBLIC);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_PARAMS, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_LANG, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_EXCEPTION, &rv, ZEND_ACC_PROTECTED);
 
 	ZVAL_EMPTY_STRING(&rv);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_BASE, &rv, ZEND_ACC_PROTECTED, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_URI, &rv, ZEND_ACC_PROTECTED, NULL);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_BASE, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_URI, &rv, ZEND_ACC_PROTECTED);
 
 	ZVAL_NULL(&rv);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_STATE, &rv, ZEND_ACC_PROTECTED, NULL);
-	zend_declare_property_ex(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_ROUTED, &rv, ZEND_ACC_PROTECTED, NULL);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_STATE, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_request_ce, YAF_REQUEST_PROPERTY_NAME_ROUTED, &rv, ZEND_ACC_PROTECTED);
 
 	YAF_STARTUP(request_http);
 	YAF_STARTUP(request_simple);

@@ -17,7 +17,7 @@
 #ifndef YAF_ROUTER_SUPERVAR_H
 #define YAF_ROUTER_SUPERVAR_H
 
-#define YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR "_var_name"
+#define YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR  YAF_STR(YAF_STR__VAR_NAME)
 
 extern zend_class_entry *yaf_route_supervar_ce;
 

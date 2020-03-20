@@ -51,14 +51,14 @@ yaf_route_t * yaf_route_rewrite_instance(yaf_route_t *this_ptr, zval *match, zva
 		object_init_ex(this_ptr, yaf_route_rewrite_ce);
 	}
 
-	zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MATCH, match);
-	zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_ROUTE, route);
+	yaf_write_property(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MATCH, match);
+	yaf_write_property(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_ROUTE, route);
 
 	if (!verify) {
 		ZVAL_NULL(&rv);
-		zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv);
+		yaf_write_property(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv);
 	} else {
-		zend_update_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, verify);
+		yaf_write_property(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_VERIFY, verify);
 	}
 
 	return this_ptr;
@@ -72,7 +72,7 @@ static int yaf_route_rewrite_match(yaf_route_t *router, const char *uri, size_t 
 	pcre_cache_entry *pce_regexp;
 	smart_str pattern = {0};
 
-	match  = zend_read_property_ex(yaf_route_rewrite_ce, router, YAF_ROUTE_PROPETY_NAME_MATCH, 1, NULL);
+	match  = yaf_read_property(yaf_route_rewrite_ce, router, YAF_ROUTE_PROPETY_NAME_MATCH);
 	ZEND_ASSERT(Z_TYPE_P(match) == IS_STRING);
 
 	smart_str_appendc(&pattern, YAF_ROUTE_REGEX_DILIMITER);
@@ -178,8 +178,8 @@ int yaf_route_rewrite_route(yaf_route_t *router, yaf_request_t *request) {
 	const char *req_uri;
 	size_t req_uri_len;
 
-	uri  = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_URI, 1, NULL);
-	base_uri = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, 1, NULL);
+	uri  = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_URI);
+	base_uri = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE);
 
 	if (Z_STRLEN_P(base_uri)) {
 		req_uri = yaf_request_strip_base_uri(Z_STR_P(uri), Z_STR_P(base_uri), &req_uri_len);
@@ -195,15 +195,15 @@ int yaf_route_rewrite_route(yaf_route_t *router, yaf_request_t *request) {
 	if (EXPECTED(yaf_route_rewrite_match(router, req_uri, req_uri_len, &args))) {
 		zval *module, *controller, *action, *routes;
 
-		routes = zend_read_property_ex(yaf_route_rewrite_ce, router, YAF_ROUTE_PROPETY_NAME_ROUTE, 1, NULL);
+		routes = yaf_read_property(yaf_route_rewrite_ce, router, YAF_ROUTE_PROPETY_NAME_ROUTE);
 		if ((module = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("module"))) != NULL &&
 			IS_STRING == Z_TYPE_P(module)) {
 			if (Z_STRVAL_P(module)[0] != ':') {
-				zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
+				yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, module);
 			} else {
 				zval *m;
 				if ((m = zend_hash_str_find(Z_ARRVAL(args), Z_STRVAL_P(module) + 1, Z_STRLEN_P(module) - 1)) != NULL && IS_STRING == Z_TYPE_P(m)) {
-					zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, m);
+					yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_MODULE, m);
 				}
 			}
 		}
@@ -211,11 +211,11 @@ int yaf_route_rewrite_route(yaf_route_t *router, yaf_request_t *request) {
 		if ((controller = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("controller"))) != NULL &&
 			IS_STRING == Z_TYPE_P(controller)) {
 			if (Z_STRVAL_P(controller)[0] != ':') {
-				zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
+				yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, controller);
 			} else {
 				zval *c;
 				if ((c = zend_hash_str_find(Z_ARRVAL(args), Z_STRVAL_P(controller) + 1, Z_STRLEN_P(controller) - 1)) != NULL && IS_STRING == Z_TYPE_P(c)) {
-					zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, c);
+					yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, c);
 				}
 			}
 		}
@@ -223,11 +223,11 @@ int yaf_route_rewrite_route(yaf_route_t *router, yaf_request_t *request) {
 		if ((action = zend_hash_str_find(Z_ARRVAL_P(routes), ZEND_STRL("action"))) != NULL &&
 			IS_STRING == Z_TYPE_P(action)) {
 			if (Z_STRVAL_P(action)[0] != ':') {
-				zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, action);
+				yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, action);
 			} else {
 				zval *a;
 				if ((a = zend_hash_str_find(Z_ARRVAL(args), Z_STRVAL_P(action) + 1, Z_STRLEN_P(action) - 1)) != NULL && IS_STRING == Z_TYPE_P(a)) {
-					zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, a);
+					yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, a);
 				}
 			}
 		}
@@ -276,7 +276,7 @@ zend_string * yaf_route_rewrite_assemble(yaf_route_t *this_ptr, zval *info, zval
 
 	array_init(&pidents);
 
-	match  = zend_read_property_ex(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MATCH, 1, NULL);
+	match  = yaf_read_property(yaf_route_rewrite_ce, this_ptr, YAF_ROUTE_PROPETY_NAME_MATCH);
 	uri = zend_string_copy(Z_STR_P(match));
 	pmatch = estrndup(Z_STRVAL_P(match), Z_STRLEN_P(match));
 	zend_hash_copy(Z_ARRVAL(pidents), Z_ARRVAL_P(info), (copy_ctor_func_t) zval_add_ref);
@@ -449,9 +449,9 @@ YAF_STARTUP_FUNCTION(route_rewrite) {
 	yaf_route_rewrite_ce->ce_flags |= ZEND_ACC_FINAL;
 
 	ZVAL_NULL(&rv);
-	zend_declare_property_ex(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_MATCH, &rv, ZEND_ACC_PROTECTED, NULL);
-	zend_declare_property_ex(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_ROUTE, &rv, ZEND_ACC_PROTECTED, NULL);
-	zend_declare_property_ex(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv, ZEND_ACC_PROTECTED, NULL);
+	yaf_declare_property(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_MATCH, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_ROUTE, &rv, ZEND_ACC_PROTECTED);
+	yaf_declare_property(yaf_route_rewrite_ce, YAF_ROUTE_PROPETY_NAME_VERIFY, &rv, ZEND_ACC_PROTECTED);
 
 	return SUCCESS;
 }

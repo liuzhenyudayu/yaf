@@ -45,6 +45,9 @@
 
 ZEND_DECLARE_MODULE_GLOBALS(yaf);
 
+#if PHP_VERSION_ID < 70300
+const
+#endif
 char *yaf_known_strings[] = {
 #define _YAF_STR_DSC(id, str) str,
 YAF_KNOWN_STRINGS(_YAF_STR_DSC)
@@ -129,19 +132,15 @@ PHP_MINIT_FUNCTION(yaf)
 		REGISTER_LONG_CONSTANT("YAF_ERR_TYPE_ERROR",			YAF_ERR_TYPE_ERROR, CONST_PERSISTENT | CONST_CS);
 	}
 
+#if PHP_VERSION_ID >= 70300
 	{
 		unsigned int i;
 		for (i = 0; i < sizeof(yaf_known_strings)/sizeof(char*) - 1; i++) {
-#if PHP_VERSION_ID < 70200
-			zend_string *str = zend_string_init(yaf_known_strings[i], strlen(yaf_known_strings[i]), 1);
-			GC_FLAGS(str) |= IS_STR_INTERNED | IS_STR_PERMANENT;
-			zend_string_hash_val(str);
-#else
 			zend_string *str = zend_string_init_interned(yaf_known_strings[i], strlen(yaf_known_strings[i]), 1); 
-#endif
 			yaf_known_strings[i] = (char*)str;
 		}
 	}
+#endif
 
 	/* startup components */
 	YAF_STARTUP(application);
@@ -169,18 +168,6 @@ PHP_MINIT_FUNCTION(yaf)
 PHP_MSHUTDOWN_FUNCTION(yaf)
 {
 	UNREGISTER_INI_ENTRIES();
-
-	{
-		unsigned int i;
-		for (i = 0; i < sizeof(yaf_known_strings)/sizeof(char*) - 1; i++) {
-			/* pefree(yaf_known_strings[i], 1); */
-		}
-	}
-
-	if (YAF_G(configs)) {
-		zend_hash_destroy(YAF_G(configs));
-		pefree(YAF_G(configs), 1);
-	}
 
 	return SUCCESS;
 }

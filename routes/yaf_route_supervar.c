@@ -45,8 +45,7 @@ ZEND_END_ARG_INFO()
 int yaf_route_supervar_route(yaf_route_t *route, yaf_request_t *request) {
 	zval *varname, *uri;
 
-	varname = zend_read_property(yaf_route_supervar_ce,
-			route, ZEND_STRL(YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR), 1, NULL);
+	varname = yaf_read_property(yaf_route_supervar_ce, route, YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR);
 
 	uri = yaf_request_query(YAF_GLOBAL_VARS_GET, Z_STR_P(varname));
 
@@ -69,7 +68,7 @@ yaf_route_t * yaf_route_supervar_instance(yaf_route_t *this_ptr, zval *name) /* 
 		object_init_ex(this_ptr, yaf_route_supervar_ce);
 	} 
 
-	zend_update_property(yaf_route_supervar_ce, this_ptr, ZEND_STRL(YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR), name);
+	yaf_write_property(yaf_route_supervar_ce, this_ptr, YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR, name);
 
 	return this_ptr;
 }
@@ -95,8 +94,7 @@ zend_string * yaf_route_supervar_assemble(yaf_route_t *this_ptr, zval *info, zva
 	zend_string *val;
 	zval *pname, *zv;
 
-	pname = zend_read_property(yaf_route_supervar_ce,
-			this_ptr, ZEND_STRL(YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR), 1, NULL);
+	pname = yaf_read_property(yaf_route_supervar_ce, this_ptr, YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR);
 
 	do {
 		smart_str_appendc(&uri, '?');
@@ -168,7 +166,7 @@ PHP_METHOD(yaf_route_supervar, __construct) {
         RETURN_FALSE;
     }
 
-    zend_update_property(yaf_route_supervar_ce, getThis(), ZEND_STRL(YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR), var);
+    yaf_write_property(yaf_route_supervar_ce, getThis(), YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR, var);
 }
 /** }}} */
 
@@ -203,13 +201,16 @@ zend_function_entry yaf_route_supervar_methods[] = {
 /** {{{ YAF_STARTUP_FUNCTION
  */
 YAF_STARTUP_FUNCTION(route_supervar) {
+	zval rv;
 	zend_class_entry ce;
+
 	YAF_INIT_CLASS_ENTRY(ce, "Yaf_Route_Supervar", "Yaf\\Route\\Supervar", yaf_route_supervar_methods);
 	yaf_route_supervar_ce = zend_register_internal_class(&ce);
 	zend_class_implements(yaf_route_supervar_ce, 1, yaf_route_ce);
 	yaf_route_supervar_ce->ce_flags |= ZEND_ACC_FINAL;
 
-	zend_declare_property_null(yaf_route_supervar_ce, ZEND_STRL(YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR),  ZEND_ACC_PROTECTED);
+	ZVAL_NULL(&rv);
+	yaf_declare_property(yaf_route_supervar_ce, YAF_ROUTE_SUPERVAR_PROPETY_NAME_VAR, &rv, ZEND_ACC_PROTECTED);
 
 	return SUCCESS;
 }

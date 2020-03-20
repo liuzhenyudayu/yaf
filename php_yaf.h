@@ -133,7 +133,21 @@ extern zend_module_entry yaf_module_entry;
 	_(YAF_STR_ROUTED,           "routed") \
 	_(YAF_STR__BASE_URI,        "_base_uri") \
 	_(YAF_STR__EXCEPTION,       "_exception") \
-
+	_(YAF_STR__CONFIG,          "_config") \
+	_(YAF_STR__READONLY,        "_readonly") \
+	_(YAF_STR__MODULE,          "_module") \
+	_(YAF_STR__NAME,            "_name") \
+	_(YAF_STR__SCRIPT_PATH,     "_script_path") \
+	_(YAF_STR__RESPONSE,        "_response") \
+	_(YAF_STR_ACTIONS,          "actions") \
+	_(YAF_STR_AUTORENDER,       "yafAutoRender") \
+    _(YAF_STR__CONTROLLER,      "_controller") \
+    _(YAF_STR__TPL_VARS,        "_tpl_vars") \
+    _(YAF_STR__TPL_DIR,         "_tpl_dir") \
+    _(YAF_STR__OPTIONS,         "_options") \
+    _(YAF_STR__DELIMITER,       "_delimiter") \
+    _(YAF_STR__CTL_ROUTER,      "_ctl_router") \
+    _(YAF_STR__VAR_NAME,        "_var_name") \
 
 
 typedef enum _yaf_known_string_id {
@@ -143,61 +157,52 @@ YAF_KNOWN_STRINGS(_YAF_STR_ID)
 	YAF_STR_LAST_KNOWN
 } yaf_known_string_id;
 
+#if PHP_VERSION_ID < 70300
+extern const char *yaf_known_strings[];
+#define YAF_STR(id)	((const char*)yaf_known_strings[id])
+
+static zend_always_inline zval* yaf_read_property(zend_class_entry *ce, zval *obj, const char *name) {
+	return zend_read_property(ce, obj, name, strlen(name), 1, NULL);
+}
+
+static zend_always_inline void yaf_write_property(zend_class_entry *ce, zval *obj, const char *name, zval *val) {
+	return zend_update_property(ce, obj, name, strlen(name), val);
+}
+
+static zend_always_inline zval* yaf_read_static_property(zend_class_entry *ce, const char *name) {
+	return zend_read_static_property(ce, name, strlen(name), 1);
+}
+
+static zend_always_inline void yaf_write_static_property(zend_class_entry *ce, const char *name, zval *val) {
+	zend_update_static_property(ce, name, strlen(name), val);
+}
+
+static zend_always_inline void yaf_declare_property(zend_class_entry *ce, const char *name, zval *rv, unsigned int flag) {
+	zend_declare_property(ce, name, strlen(name), rv, flag);
+}
+#else
 extern char *yaf_known_strings[];
 #define YAF_STR(id)	((zend_string*)yaf_known_strings[id])
 
-#if PHP_VERSION_ID < 70300
-zend_always_inline static zval* php_yaf_read_property(zend_class_entry *scope, zval *object, zend_string *key, zend_bool slient, zval *rv) {
-	zval *property;
-#if PHP_VERSION_ID < 70100
-	zend_class_entry *old_scope = EG(scope);
-	EG(scope) = (scope);
-#else
-	zend_class_entry *old_scope = EG(fake_scope);
-	EG(fake_scope) = (scope);
-#endif
-	if (object) {
-		zval name;
-		ZVAL_INTERNED_STR(&name, key);
-		property = Z_OBJ_HT_P(object)->read_property(object, &name, BP_VAR_IS, NULL, rv);
-	} else {
-		property = zend_std_get_static_property(scope, key, slient);
-	}
-#if PHP_VERSION_ID < 70100
-	EG(scope) = old_scope;
-#else
-	EG(fake_scope) = old_scope;
-#endif
-	return property;
+static zend_always_inline zval* yaf_read_property(zend_class_entry *ce, zval *obj, zend_string *name) {
+	return zend_read_property_ex(ce, obj, name, 1, NULL);
 }
 
-zend_always_inline static void php_yaf_update_property(zend_class_entry *scope, zval *object, zend_string *key, zval *v) {
-#if PHP_VERSION_ID < 70100
-	zend_class_entry *old_scope = EG(scope);
-	EG(scope) = (scope);
-#else
-	zend_class_entry *old_scope = EG(fake_scope);
-	EG(fake_scope) = (scope);
-#endif
-	if (object) {
-		zval name;
-		ZVAL_INTERNED_STR(&name, key);
-		Z_OBJ_HT_P(object)->write_property(object, &name, v, NULL);
-	} else {
-		zend_update_static_property(scope, ZSTR_VAL(key), ZSTR_LEN(key), v);
-	}
-#if PHP_VERSION_ID < 70100
-	EG(scope) = old_scope;
-#else
-	EG(fake_scope) = old_scope;
-#endif
+static zend_always_inline void yaf_write_property(zend_class_entry *ce, zval *obj, zend_string *name, zval *val) {
+	return zend_update_property_ex(ce, obj, name, val);
 }
 
-#define zend_read_property_ex php_yaf_read_property
-#define zend_read_static_property_ex(scope, key, slient) php_yaf_read_property(scope, NULL, key, slient, NULL)
+static zend_always_inline zval* yaf_read_static_property(zend_class_entry *ce, zend_string *name) {
+	return zend_read_static_property_ex(ce, name, 1);
+}
 
-#define zend_update_property_ex php_yaf_update_property
-#define zend_update_static_property_ex(scope, key, rv) php_yaf_update_property(scope, NULL, key, rv)
+static zend_always_inline void yaf_write_static_property(zend_class_entry *ce, zend_string *name, zval *val) {
+	zend_update_static_property_ex(ce, name, val);
+}
+
+static zend_always_inline void yaf_declare_property(zend_class_entry *ce, zend_string *name, zval *rv, unsigned int flag) {
+	zend_declare_property_ex(ce, name, rv, flag, NULL);
+}
 #endif
 
 extern PHPAPI void php_var_dump(zval **struc, int level);
@@ -214,8 +219,8 @@ ZEND_BEGIN_MODULE_GLOBALS(yaf)
     zend_string   *default_controller;
     zend_string   *default_action;
     zend_string   *bootstrap;
+	zend_array    *configs;
     zend_array    *local_namespaces;
-    zend_array    *configs;
     zend_array    *default_route;
     zend_array    *modules;
 

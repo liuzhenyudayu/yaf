@@ -77,14 +77,17 @@ zend_function_entry yaf_config_methods[] = {
 /** {{{ YAF_STARTUP_FUNCTION
 */
 YAF_STARTUP_FUNCTION(config) {
+	zval rv;
 	zend_class_entry ce;
 
 	YAF_INIT_CLASS_ENTRY(ce, "Yaf_Config_Abstract", "Yaf\\Config_Abstract", yaf_config_methods);
 	yaf_config_ce = zend_register_internal_class_ex(&ce, NULL);
 	yaf_config_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;
 
-	zend_declare_property_null(yaf_config_ce, ZEND_STRL(YAF_CONFIG_PROPERT_NAME), ZEND_ACC_PROTECTED);
-	zend_declare_property_bool(yaf_config_ce, ZEND_STRL(YAF_CONFIG_PROPERT_NAME_READONLY), 1, ZEND_ACC_PROTECTED);
+	ZVAL_NULL(&rv);
+	yaf_declare_property(yaf_config_ce, YAF_CONFIG_PROPERT_NAME, &rv, ZEND_ACC_PROTECTED);
+	ZVAL_TRUE(&rv);
+	yaf_declare_property(yaf_config_ce, YAF_CONFIG_PROPERT_NAME_READONLY, &rv, ZEND_ACC_PROTECTED);
 
 	YAF_STARTUP(config_ini);
 	YAF_STARTUP(config_simple);

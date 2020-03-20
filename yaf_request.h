@@ -65,8 +65,7 @@ const char *yaf_request_get_request_method(void);
 
 #define YAF_REQUEST_IS_METHOD(x) \
 PHP_METHOD(yaf_request, is##x) {\
-	zval *method = zend_read_property_ex(Z_OBJCE_P(getThis()), \
-					getThis(), YAF_REQUEST_PROPERTY_NAME_METHOD, 1, NULL); \
+	zval *method = yaf_read_property(Z_OBJCE_P(getThis()), getThis(), YAF_REQUEST_PROPERTY_NAME_METHOD); \
 	if (zend_string_equals_literal_ci(Z_STR_P(method), #x)) { \
 		RETURN_TRUE; \
 	} \

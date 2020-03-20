@@ -18,8 +18,9 @@
 #define YAF_CONFIG_H
 
 #define YAF_EXTRACT_FUNC_NAME            "extract"
-#define YAF_CONFIG_PROPERT_NAME          "_config"
-#define YAF_CONFIG_PROPERT_NAME_READONLY "_readonly"
+
+#define YAF_CONFIG_PROPERT_NAME          YAF_STR(YAF_STR__CONFIG)
+#define YAF_CONFIG_PROPERT_NAME_READONLY YAF_STR(YAF_STR__READONLY)
 
 struct _yaf_config_cache {
 	long ctime;

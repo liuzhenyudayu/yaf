@@ -41,17 +41,19 @@ ZEND_END_ARG_INFO()
 /* }}} */
 
 yaf_route_t * yaf_route_map_instance(yaf_route_t *this_ptr, zend_bool controller_prefer, zend_string *delim) /* {{{ */{
+	zval rv;
 	if (Z_ISUNDEF_P(this_ptr)) {
 		object_init_ex(this_ptr, yaf_route_map_ce);
 	} 
 
 	if (controller_prefer) {
-		zend_update_property_bool(yaf_route_map_ce, this_ptr,
-				ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER), 1);
+		ZVAL_TRUE(&rv);
+		yaf_write_property(yaf_route_map_ce, this_ptr, YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER, &rv);
 	}
 
 	if (delim && ZSTR_LEN(delim)) {
-		zend_update_property_str(yaf_route_map_ce, this_ptr, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_DELIMETER), delim);
+		ZVAL_STR(&rv, delim);
+		yaf_write_property(yaf_route_map_ce, this_ptr, YAF_ROUTE_MAP_VAR_NAME_DELIMETER, &rv);
 	}
 
 	return this_ptr;
@@ -66,8 +68,8 @@ int yaf_route_map_route(yaf_route_t *route, yaf_request_t *request) {
 	size_t req_uri_len, query_str_len;
 	smart_str route_result = {0};
 
-	uri = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_URI, 1, NULL);
-	base_uri = zend_read_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE, 1, NULL);
+	uri = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_URI);
+	base_uri = yaf_read_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_BASE);
 
 	if (Z_STRLEN_P(base_uri)) {
 		req_uri = yaf_request_strip_base_uri(Z_STR_P(uri), Z_STR_P(base_uri), &req_uri_len);
@@ -76,7 +78,7 @@ int yaf_route_map_route(yaf_route_t *route, yaf_request_t *request) {
 		req_uri_len = Z_STRLEN_P(uri);
 	}
 
-	delimer	= zend_read_property(yaf_route_map_ce, route, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_DELIMETER), 1, NULL);
+	delimer	= yaf_read_property(yaf_route_map_ce, route, YAF_ROUTE_MAP_VAR_NAME_DELIMETER);
 
 	if (UNEXPECTED(Z_TYPE_P(delimer) == IS_STRING && Z_STRLEN_P(delimer))) {
 		if ((query_str = strstr(req_uri, Z_STRVAL_P(delimer))) && *(query_str - 1) == '/') {
@@ -117,15 +119,15 @@ int yaf_route_map_route(yaf_route_t *route, yaf_request_t *request) {
 
 	if (route_result.s) {
 		zval rv;
-		zval *ctl_prefer = zend_read_property(yaf_route_map_ce, route, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER), 1, NULL);
+		zval *ctl_prefer = yaf_read_property(yaf_route_map_ce, route, YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER);
 		ZSTR_LEN(route_result.s)--;
 		ZSTR_VAL(route_result.s)[ZSTR_LEN(route_result.s)] = '\0';
 
 		ZVAL_NEW_STR(&rv, route_result.s);
 		if (Z_TYPE_P(ctl_prefer) == IS_TRUE) {
-			zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, &rv);
+			yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_CONTROLLER, &rv);
 		} else {
-			zend_update_property_ex(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, &rv);
+			yaf_write_property(yaf_request_ce, request, YAF_REQUEST_PROPERTY_NAME_ACTION, &rv);
 		}
 		smart_str_free(&route_result);
 	}
@@ -163,8 +165,8 @@ zend_string * yaf_route_map_assemble(yaf_route_t *this_ptr, zval *info, zval *qu
 	zend_bool has_delim = 0;
 	zval *delim, *ctl_prefer, *zv;
 
-	ctl_prefer = zend_read_property(yaf_route_map_ce, this_ptr, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER), 1, NULL);
-	delim = zend_read_property(yaf_route_map_ce, this_ptr, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_DELIMETER), 1, NULL);
+	ctl_prefer = yaf_read_property(yaf_route_map_ce, this_ptr, YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER);
+	delim = yaf_read_property(yaf_route_map_ce, this_ptr, YAF_ROUTE_MAP_VAR_NAME_DELIMETER);
 
 	if (IS_STRING == Z_TYPE_P(delim) && Z_STRLEN_P(delim)) {
 		has_delim = 1;
@@ -291,6 +293,7 @@ zend_function_entry yaf_route_map_methods[] = {
 /** {{{ YAF_STARTUP_FUNCTION
 */
 YAF_STARTUP_FUNCTION(route_map) {
+	zval rv;
 	zend_class_entry ce;
 
 	YAF_INIT_CLASS_ENTRY(ce, "Yaf_Route_Map", "Yaf\\Route\\Map", yaf_route_map_methods);
@@ -299,8 +302,10 @@ YAF_STARTUP_FUNCTION(route_map) {
 
 	yaf_route_map_ce->ce_flags |= ZEND_ACC_FINAL;
 
-	zend_declare_property_bool(yaf_route_map_ce, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER), 0, ZEND_ACC_PROTECTED);
-	zend_declare_property_null(yaf_route_map_ce, ZEND_STRL(YAF_ROUTE_MAP_VAR_NAME_DELIMETER),  ZEND_ACC_PROTECTED);
+	ZVAL_FALSE(&rv);
+	yaf_declare_property(yaf_route_map_ce, YAF_ROUTE_MAP_VAR_NAME_CTL_PREFER, &rv, ZEND_ACC_PROTECTED);
+	ZVAL_NULL(&rv);
+	yaf_declare_property(yaf_route_map_ce, YAF_ROUTE_MAP_VAR_NAME_DELIMETER, &rv, ZEND_ACC_PROTECTED);
 
 	return SUCCESS;
 }

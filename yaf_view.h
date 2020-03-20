@@ -20,9 +20,9 @@
 #define yaf_view_instance yaf_view_simple_instance
 #define yaf_view_ce		  yaf_view_simple_ce
 
-#define YAF_VIEW_PROPERTY_NAME_TPLVARS 	"_tpl_vars"
-#define YAF_VIEW_PROPERTY_NAME_TPLDIR	"_tpl_dir"
-#define YAF_VIEW_PROPERTY_NAME_OPTS 	"_options"
+#define YAF_VIEW_PROPERTY_NAME_TPLVARS 	YAF_STR(YAF_STR__TPL_VARS)
+#define YAF_VIEW_PROPERTY_NAME_TPLDIR	YAF_STR(YAF_STR__TPL_DIR)
+#define YAF_VIEW_PROPERTY_NAME_OPTS 	YAF_STR(YAF_STR__OPTIONS)
 
 extern zend_class_entry *yaf_view_interface_ce;
 extern zend_class_entry *yaf_view_simple_ce;
